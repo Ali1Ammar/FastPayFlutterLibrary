@@ -1,38 +1,38 @@
 import Flutter
 import UIKit
-
-#if !targetEnvironment(simulator)
 import FastpayMerchantSDK
-#endif
 
-public class SwiftFastpayIraqPlugin: UIViewController, FlutterPlugin {
+public class SwiftFastpayIraqPlugin: UIViewController, FlutterPlugin, FastPayDelegate {
     
+    
+
     var resultG: FlutterResult!
     var isPresented: Bool = false
     var timer: Timer?
+
     
-    #if !targetEnvironment(simulator)
-    public class SwiftFastpayIraqPlugin: UIViewController, FlutterPlugin, FastPayDelegate {
-        public func fastPayProcessStatus(with status: FastpayMerchantSDK.FPFrameworkStatus) {
-            print("Here is the print: \(status)")
-            resultG("\(status)")
-        }
-        
-        public func fastpayTransactionSucceeded(with transaction: FPTransaction) {
-            isPresented = true
-            print("return success \(isPresented)")
-            if let transactionId = transaction.transactionId, let orderID = transaction.orderId, let billAmount = transaction.amount, let currency = transaction.currency, let customerMobileNo = transaction.customerMobileNo, let name = transaction.customerName, let status = transaction.status, let transactionTime = transaction.transactionTime {
-                
-                resultG("{\"isSuccess\":true,\"errorMessage\":\"\",\"transactionStatus\":\"\(status)\",\"transactionId\":\"\(transactionId)\",\"orderId\":\"\(orderID)\",\"paymentAmount\":\"\(billAmount)\",\"paymentCurrency\":\"IQD\",\"payeeName\":\"\(name)\",\"payeeMobileNumber\":\"\(customerMobileNo)\",\"paymentTime\":\"\(transactionTime)\"}")
-            }
-        }
-        
-        public func fastpayTransactionFailed(with orderId: String) {
-            print("Failed Order ID: \(orderId)")
-            resultG("{\"isSuccess\":false,\"errorMessage\":\""+"\(orderId)"+"\",\"transactionStatus\":\"\",\"transactionId\":\"\",\"orderId\":\"\",\"paymentAmount\":\"\",\"paymentCurrency\":\"\",\"payeeName\":\"\",\"payeeMobileNumber\":\"\",\"paymentTime\":\"\"}")
-        }
+    public func fastPayProcessStatus(with status: FastpayMerchantSDK.FPFrameworkStatus) {
+        print("Here is the print: \(status)")
+        resultG("\(status)")
     }
-    #endif
+    
+    public func fastpayTransactionSucceeded(with transaction: FPTransaction) {
+        isPresented = true
+        print("return sesses \(isPresented)")
+        if let transactionId = transaction.transactionId, let orderID = transaction.orderId, let billAmount = transaction.amount, let currency = transaction.currency, let customerMobileNo = transaction.customerMobileNo, let name = transaction.customerName, let status = transaction.status, let transactionTime = transaction.transactionTime{
+            
+            resultG("{\"isSuccess\":true,\"errorMessage\":\"\",\"transactionStatus\":\"\(status)\",\"transactionId\":\"\(transactionId)\",\"orderId\":\"\(orderID)\",\"paymentAmount\":\"\(billAmount)\",\"paymentCurrency\":\"IQD\",\"payeeName\":\"\(name)\",\"payeeMobileNumber\":\"\(customerMobileNo)\",\"paymentTime\":\"\(transactionTime)\"}")
+        }
+        
+        
+    }
+    
+    public func fastpayTransactionFailed(with orderId: String) {
+        print("Failed Order ID: \(orderId)")
+        resultG("{\"isSuccess\":false,\"errorMessage\":\""+"\(orderId)"+"\",\"transactionStatus\":\"\",\"transactionId\":\"\",\"orderId\":\"\",\"paymentAmount\":\"\",\"paymentCurrency\":\"\",\"payeeName\":\"\",\"payeeMobileNumber\":\"\",\"paymentTime\":\"\"}")
+    }
+    
+    
     
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "fastpay", binaryMessenger: registrar.messenger())
@@ -42,9 +42,9 @@ public class SwiftFastpayIraqPlugin: UIViewController, FlutterPlugin {
     }
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        resultG = result
+        resultG = result;
         
-        do {
+        do{
             guard let args = call.arguments as? [String: Any] else {
                 return
             }
@@ -55,16 +55,16 @@ public class SwiftFastpayIraqPlugin: UIViewController, FlutterPlugin {
             let isProduction = args["isProduction"] as! Bool
             let uri = args["callbackUri"] as! String
             
-            #if !targetEnvironment(simulator)
             let amounts = Int(amount)
-            let testObj = Fastpay(storeId: storeId, storePassword: storePassword, orderId: orderId,
+            let testObj = Fastpay(storeId: storeId, storePassword: storePassword, orderId: orderId ,
                                   amount: amounts ?? 0, currency: .IQD, uri: uri)
             testObj.delegate = self
             let uiContoller = (UIApplication.shared.keyWindow?.rootViewController!)!
             
             let vc = FlutterViewController()
-            
+
             let x: () =  testObj.start(in: uiContoller, for: isProduction ? .Production : .Sandbox)
+            
             
             timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] timer in
                 if let rootVC = UIApplication.shared.keyWindow?.rootViewController {
@@ -78,18 +78,21 @@ public class SwiftFastpayIraqPlugin: UIViewController, FlutterPlugin {
                             if(!self!.isPresented == true){
                                 self?.resultG("{\"isSuccess\":false,\"errorMessage\":\""+"Cancel"+"\",\"transactionStatus\":\"\",\"transactionId\":\"\",\"orderId\":\"\",\"paymentAmount\":\"\",\"paymentCurrency\":\"\",\"payeeName\":\"\",\"payeeMobileNumber\":\"\",\"paymentTime\":\"\"}")
                             }
+                            
                         }
                     }
                 }
             }
             
+            
             print(x)
             print("______////\\\\_______")
-            #else
-            resultG("{\"isSuccess\":false,\"errorMessage\":\"SDK not supported on Simulator\",\"transactionStatus\":\"\",\"transactionId\":\"\",\"orderId\":\"\",\"paymentAmount\":\"\",\"paymentCurrency\":\"\",\"payeeName\":\"\",\"payeeMobileNumber\":\"\",\"paymentTime\":\"\"}")
-            #endif
-        } catch let e {
+        } catch let e{
             result("{\"isSuccess\":false,\"errorMessage\":\""+"\(e)"+"\",\"transactionStatus\":\"\",\"transactionId\":\"\",\"orderId\":\"\",\"paymentAmount\":\"\",\"paymentCurrency\":\"\",\"payeeName\":\"\",\"payeeMobileNumber\":\"\",\"paymentTime\":\"\"}")
         }
+        
     }
+
+
+
 }
