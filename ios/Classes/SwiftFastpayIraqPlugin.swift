@@ -1,11 +1,12 @@
 import Flutter
 import UIKit
+#if !targetEnvironment(simulator)
 import FastpayMerchantSDK
+#endif
 
+#if !targetEnvironment(simulator)
 public class SwiftFastpayIraqPlugin: UIViewController, FlutterPlugin, FastPayDelegate {
     
-    
-
     var resultG: FlutterResult!
     var isPresented: Bool = false
     var timer: Timer?
@@ -92,7 +93,40 @@ public class SwiftFastpayIraqPlugin: UIViewController, FlutterPlugin, FastPayDel
         }
         
     }
-
-
-
 }
+#else
+
+public class SwiftFastpayIraqPlugin: UIViewController, FlutterPlugin {
+    
+    var resultG: FlutterResult!
+
+    public func fastPayProcessStatus(with status: Any ) {
+        print("Process status: \(status)")
+    }
+
+ public func fastpayTransactionSucceeded(with transaction: Any) {
+
+    }
+    
+    public func fastpayTransactionFailed(with orderId: String) {
+        print("Failed Order ID: \(orderId)")
+        resultG("{\"isSuccess\":false,\"errorMessage\":\""+"\(orderId)"+"\",\"transactionStatus\":\"\",\"transactionId\":\"\",\"orderId\":\"\",\"paymentAmount\":\"\",\"paymentCurrency\":\"\",\"payeeName\":\"\",\"payeeMobileNumber\":\"\",\"paymentTime\":\"\"}")
+    }
+    
+    
+    
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: "fastpay", binaryMessenger: registrar.messenger())
+        let instance = SwiftFastpayIraqPlugin()
+        registrar.addMethodCallDelegate(instance, channel: channel)
+        registrar.addApplicationDelegate(instance)
+    }
+
+
+      public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+             resultG = result;
+      }
+}
+
+
+#endif
