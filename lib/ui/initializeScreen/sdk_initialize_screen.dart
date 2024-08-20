@@ -101,6 +101,7 @@ class _SdkInitializeScreenState extends State<SdkInitializeScreen> with WidgetsB
                     Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => PaymentScreen(response)));
                   }
                 }else{
+                  throw Exception("IOS not supported");
                   setState(() {
                     titleText = "Waiting for payment completion..";
                   });
